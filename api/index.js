@@ -17,8 +17,8 @@ export default async function handler(req, res) {
   // আপনার Config এখানে বসান
   // ============================
   const CONFIG = {
-    GEMINI_API_KEY: process.env.AIzaSyDriARpvQ1Db00jML-HjbkLvE8JI_npono,
-    BLOGGER_BLOG_ID: process.env.9006642951505624918,
+    GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+    BLOGGER_BLOG_ID: process.env.BLOGGER_BLOG_ID,
     BLOGGER_ACCESS_TOKEN: process.env.BLOGGER_ACCESS_TOKEN,
     INDEXNOW_KEY: process.env.INDEXNOW_KEY || 'your-indexnow-key',
     YOUR_DOMAIN: process.env.YOUR_DOMAIN || 'indexing-master.vercel.app',
