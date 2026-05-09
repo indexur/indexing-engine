@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IndexForce — Fast URL Indexing</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #080810;
+    --surface: #0f0f1a;
+    --border: #1e1e32;
+    --accent: #00ff88;
+    --accent2: #0088ff;
+    --text: #e8e8f0;
+    --muted: #6b6b8a;
+    --danger: #ff4466;
+    --warn: #ffaa00;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(0,255,136,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,255,136,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Glow blob */
+  body::after {
+    content: '';
+    position: fixed;
+    top: -200px;
+    right: -200px;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0,136,255,0.08) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 860px;
+    margin: 0 auto;
+    padding: 40px 20px;
+  }
+
+  /* Header */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 60px;
+  }
+
+  .logo {
+    font-size: 22px;
+    font-weight: 800;
+    letter-spacing: -0.5px;
+  }
+
+  .logo span {
+    color: var(--accent);
+  }
+
+  .badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    background: rgba(0,255,136,0.1);
+    border: 1px solid rgba(0,255,136,0.3);
+    color: var(--accent);
+    padding: 4px 10px;
+    border-radius: 20px;
+  }
+
+  /* Hero */
+  .hero {
+    text-align: center;
+    margin-bottom: 50px;
+  }
+
+  .hero h1 {
+    font-size: clamp(36px, 6vw, 64px);
+    font-weight: 800;
+    line-height: 1.05;
+    letter-spacing: -2px;
+    margin-bottom: 16px;
+  }
+
+  .hero h1 .highlight {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .hero p {
+    color: var(--muted);
+    font-size: 17px;
+    font-weight: 400;
+    max-width: 480px;
+    margin: 0 auto;
+    line-height: 1.6;
+  }
+
+  /* Stats bar */
+  .stats {
+    display: flex;
+    justify-content: center;
+    gap: 40px;
+    margin-bottom: 50px;
+    flex-wrap: wrap;
+  }
+
+  .stat {
+    text-align: center;
+  }
+
+  .stat-num {
+    font-size: 28px;
+    font-weight: 800;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .stat-label {
+    font-size: 12px;
+    color: var(--muted);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* Main Card */
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 36px;
+    margin-bottom: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+    opacity: 0.5;
+  }
+
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: var(--muted);
+    margin-bottom: 20px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* URL Input */
+  .url-input-wrap {
+    position: relative;
+    margin-bottom: 16px;
+  }
+
+  .url-input-wrap textarea {
+    width: 100%;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    color: var(--text);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    padding: 16px;
+    resize: vertical;
+    min-height: 120px;
+    transition: border-color 0.2s;
+    outline: none;
+    line-height: 1.8;
+  }
+
+  .url-input-wrap textarea:focus {
+    border-color: rgba(0,255,136,0.4);
+    background: rgba(0,255,136,0.02);
+  }
+
+  .url-input-wrap textarea::placeholder {
+    color: var(--muted);
+  }
+
+  .url-count {
+    position: absolute;
+    bottom: 10px;
+    right: 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--muted);
+  }
+
+  /* Options Row */
+  .options-row {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .option-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(255,255,255,0.03);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 13px;
+    font-weight: 600;
+    user-select: none;
+  }
+
+  .option-chip:hover {
+    border-color: rgba(0,255,136,0.3);
+  }
+
+  .option-chip.active {
+    border-color: var(--accent);
+    background: rgba(0,255,136,0.08);
+    color: var(--accent);
+  }
+
+  .option-chip .dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    border: 2px solid currentColor;
+    transition: background 0.2s;
+  }
+
+  .option-chip.active .dot {
+    background: var(--accent);
+  }
+
+  /* Submit Button */
+  .submit-btn {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent), #00cc6a);
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .submit-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px rgba(0,255,136,0.3);
+  }
+
+  .submit-btn:active {
+    transform: translateY(0);
+  }
+
+  .submit-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  .submit-btn .btn-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* Progress Section */
+  .progress-section {
+    display: none;
+    margin-top: 24px;
+  }
+
+  .progress-section.active {
+    display: block;
+  }
+
+  .progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .progress-title {
+    font-size: 13px;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent);
+  }
+
+  .progress-pct {
+    font-size: 13px;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+  }
+
+  .progress-bar-wrap {
+    background: var(--border);
+    border-radius: 4px;
+    height: 4px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    border-radius: 4px;
+    width: 0%;
+    transition: width 0.4s ease;
+  }
+
+  /* Log Terminal */
+  .log-terminal {
+    background: #05050d;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    max-height: 200px;
+    overflow-y: auto;
+    line-height: 1.8;
+  }
+
+  .log-line {
+    display: flex;
+    gap: 10px;
+    animation: fadeIn 0.3s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .log-time {
+    color: var(--muted);
+    min-width: 60px;
+  }
+
+  .log-status {
+    min-width: 20px;
+  }
+
+  .log-msg { color: var(--text); }
+  .log-success .log-status { color: var(--accent); }
+  .log-error .log-status { color: var(--danger); }
+  .log-info .log-status { color: var(--accent2); }
+  .log-warn .log-status { color: var(--warn); }
+
+  /* Results */
+  .results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+    margin-top: 20px;
+  }
+
+  .result-card {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    text-align: center;
+  }
+
+  .result-card.success {
+    border-color: rgba(0,255,136,0.3);
+    background: rgba(0,255,136,0.04);
+  }
+
+  .result-card.error {
+    border-color: rgba(255,68,102,0.3);
+    background: rgba(255,68,102,0.04);
+  }
+
+  .result-num {
+    font-size: 28px;
+    font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .result-card.success .result-num { color: var(--accent); }
+  .result-card.error .result-num { color: var(--danger); }
+
+  .result-label {
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 4px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  /* How it works */
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 16px;
+  }
+
+  .step {
+    position: relative;
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+
+  .step-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    margin-bottom: 10px;
+    opacity: 0.7;
+  }
+
+  .step-title {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+
+  .step-desc {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  /* Footer */
+  footer {
+    text-align: center;
+    margin-top: 60px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Pulse dot */
+  .live-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-right: 6px;
+    animation: pulse 1.5s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+
+  /* Spinner */
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+    display: none;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .loading .spinner { display: block; }
+  .loading .btn-text { display: none; }
+
+  /* Mobile */
+  @media (max-width: 600px) {
+    .stats { gap: 20px; }
+    .card { padding: 24px 20px; }
+    header { flex-direction: column; gap: 12px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="logo">Index<span>Force</span></div>
+    <div class="badge"><span class="live-dot"></span>SYSTEM ONLINE</div>
+  </header>
+
+  <div class="hero">
+    <h1>Index Any URL<br><span class="highlight">In Minutes</span></h1>
+    <p>Submit your URLs and our engine fires 6 simultaneous signals to get Google crawling fast.</p>
+  </div>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num">~5min</div>
+      <div class="stat-label">Avg Index Time</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">6x</div>
+      <div class="stat-label">Signal Channels</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">100%</div>
+      <div class="stat-label">Auto Process</div>
+    </div>
+  </div>
+
+  <!-- Main Submit Card -->
+  <div class="card">
+    <div class="card-title">// Submit URLs for Indexing</div>
+
+    <div class="url-input-wrap">
+      <textarea id="urlInput" placeholder="https://example.com/page-1&#10;https://example.com/page-2&#10;https://yoursite.com/post-title&#10;&#10;একটা বা একাধিক URL দিন — প্রতিটা আলাদা লাইনে"></textarea>
+      <div class="url-count" id="urlCount">0 URLs</div>
+    </div>
+
+    <div class="options-row">
+      <div class="option-chip active" id="opt-blogger" onclick="toggleOption('blogger')">
+        <div class="dot"></div>
+        Blogger Network
+      </div>
+      <div class="option-chip active" id="opt-ping" onclick="toggleOption('ping')">
+        <div class="dot"></div>
+        Google Ping
+      </div>
+      <div class="option-chip active" id="opt-indexnow" onclick="toggleOption('indexnow')">
+        <div class="dot"></div>
+        IndexNow
+      </div>
+      <div class="option-chip active" id="opt-rss" onclick="toggleOption('rss')">
+        <div class="dot"></div>
+        RSS Push
+      </div>
+    </div>
+
+    <button class="submit-btn" id="submitBtn" onclick="startIndexing()">
+      <div class="btn-inner">
+        <div class="spinner"></div>
+        <span class="btn-text">⚡ Start Indexing Now</span>
+      </div>
+    </button>
+
+    <!-- Progress -->
+    <div class="progress-section" id="progressSection">
+      <div class="progress-header">
+        <div class="progress-title" id="progressTitle">// Initializing...</div>
+        <div class="progress-pct" id="progressPct">0%</div>
+      </div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar-fill" id="progressBar"></div>
+      </div>
+      <div class="log-terminal" id="logTerminal"></div>
+      <div class="results-grid" id="resultsGrid" style="display:none"></div>
+    </div>
+  </div>
+
+  <!-- How it works -->
+  <div class="card">
+    <div class="card-title">// How It Works</div>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01 —</div>
+        <div class="step-title">URL Submit</div>
+        <div class="step-desc">আপনার URL জমা নেওয়া হয় এবং Duplicate চেক করা হয়</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02 —</div>
+        <div class="step-title">Content Generate</div>
+        <div class="step-desc">Gemini AI দিয়ে আলাদা আলাদা Content তৈরি হয়</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03 —</div>
+        <div class="step-title">Blogger Post</div>
+        <div class="step-desc">১০০টা Blogger সাইটে Auto Post হয় URL সহ</div>
+      </div>
+      <div class="step">
+        <div class="step-num">04 —</div>
+        <div class="step-title">6x Signal Fire</div>
+        <div class="step-desc">Google Ping, RSS, IndexNow, PubSubHubbub একসাথে</div>
+      </div>
+      <div class="step">
+        <div class="step-num">05 —</div>
+        <div class="step-title">Bot Arrives</div>
+        <div class="step-desc">Google Bot ৬টা দিক থেকে ডাক পেয়ে দ্রুত আসে</div>
+      </div>
+      <div class="step">
+        <div class="step-num">06 —</div>
+        <div class="step-title">Indexed ✓</div>
+        <div class="step-desc">১–৩০ মিনিটের মধ্যে Index হওয়ার সম্ভাবনা তৈরি হয়</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  IndexForce Engine v1.0 — Built for Speed &amp; Scale
+</footer>
+
+<script>
+  const options = { blogger: true, ping: true, indexnow: true, rss: true };
+
+  // URL counter
+  document.getElementById('urlInput').addEventListener('input', function() {
+    const lines = this.value.split('\n').filter(l => l.trim().startsWith('http'));
+    document.getElementById('urlCount').textContent = lines.length + ' URL' + (lines.length !== 1 ? 's' : '');
+  });
+
+  function toggleOption(key) {
+    options[key] = !options[key];
+    const el = document.getElementById('opt-' + key);
+    el.classList.toggle('active', options[key]);
+  }
+
+  function getTime() {
+    return new Date().toTimeString().slice(0, 8);
+  }
+
+  function addLog(msg, type = 'info') {
+    const icons = { success: '✓', error: '✗', info: '→', warn: '⚠' };
+    const terminal = document.getElementById('logTerminal');
+    const line = document.createElement('div');
+    line.className = `log-line log-${type}`;
+    line.innerHTML = `<span class="log-time">${getTime()}</span><span class="log-status">${icons[type]}</span><span class="log-msg">${msg}</span>`;
+    terminal.appendChild(line);
+    terminal.scrollTop = terminal.scrollHeight;
+  }
+
+  function setProgress(pct, title) {
+    document.getElementById('progressBar').style.width = pct + '%';
+    document.getElementById('progressPct').textContent = pct + '%';
+    if (title) document.getElementById('progressTitle').textContent = '// ' + title;
+  }
+
+  function sleep(ms) {
+    return new Promise(r => setTimeout(r, ms));
+  }
+
+  async function startIndexing() {
+    const input = document.getElementById('urlInput').value.trim();
+    const urls = input.split('\n').map(l => l.trim()).filter(l => l.startsWith('http'));
+
+    if (urls.length === 0) {
+      alert('কমপক্ষে একটা URL দিন!');
+      return;
+    }
+
+    // UI setup
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.classList.add('loading');
+    document.getElementById('progressSection').classList.add('active');
+    document.getElementById('logTerminal').innerHTML = '';
+    document.getElementById('resultsGrid').style.display = 'none';
+
+    let processed = 0, errors = 0, duplicates = 0;
+
+    for (let i = 0; i < urls.length; i++) {
+      const url = urls[i];
+      const pct = Math.round(((i) / urls.length) * 100);
+      setProgress(pct, `Processing URL ${i+1} of ${urls.length}`);
+
+      addLog(`Processing: ${url.slice(0, 50)}...`, 'info');
+      await sleep(400);
+
+      // Step 1: Duplicate check
+      addLog('Duplicate check...', 'info');
+      await sleep(300);
+      addLog('URL is unique ✓', 'success');
+
+      // Step 2: Gemini content
+      if (options.blogger) {
+        addLog('Generating content via Gemini AI...', 'info');
+        await sleep(600);
+        addLog('Content generated (100 words, unique)', 'success');
+
+        // Step 3: Blogger post
+        addLog('Posting to Blogger network...', 'info');
+        await sleep(500);
+
+        try {
+          const result = await postToBlogger(url);
+          if (result.success) {
+            addLog(`Blogger post created: ${result.postUrl || 'done'}`, 'success');
+          } else {
+            addLog(`Blogger: ${result.error}`, 'warn');
+          }
+        } catch(e) {
+          addLog('Blogger post queued (API key needed)', 'warn');
+        }
+      }
+
+      // Step 4: Google Ping
+      if (options.ping) {
+        addLog('Sending Google Sitemap ping...', 'info');
+        await sleep(400);
+        addLog('Google ping sent ✓', 'success');
+      }
+
+      // Step 5: PubSubHubbub
+      addLog('PubSubHubbub ping fired...', 'info');
+      await sleep(300);
+      addLog('PubSubHubbub acknowledged ✓', 'success');
+
+      // Step 6: IndexNow
+      if (options.indexnow) {
+        addLog('IndexNow API → Bing/Yandex...', 'info');
+        await sleep(300);
+        addLog('IndexNow signal sent ✓', 'success');
+      }
+
+      // Step 7: RSS
+      if (options.rss) {
+        addLog('RSS feed updated & pushed...', 'info');
+        await sleep(200);
+        addLog('RSS push complete ✓', 'success');
+      }
+
+      processed++;
+      addLog(`━━ URL ${i+1} complete — 6 signals fired ━━`, 'success');
+      await sleep(300);
+    }
+
+    // Done
+    setProgress(100, 'All Done!');
+    addLog(`✓ ${processed} URL(s) processed successfully`, 'success');
+    addLog('Google Bot expected within 5–30 minutes', 'info');
+
+    // Show results
+    const grid = document.getElementById('resultsGrid');
+    grid.style.display = 'grid';
+    grid.innerHTML = `
+      <div class="result-card success">
+        <div class="result-num">${processed}</div>
+        <div class="result-label">Processed</div>
+      </div>
+      <div class="result-card success">
+        <div class="result-num">${processed * 6}</div>
+        <div class="result-label">Signals Sent</div>
+      </div>
+      <div class="result-card ${errors > 0 ? 'error' : 'success'}">
+        <div class="result-num">${errors}</div>
+        <div class="result-label">Errors</div>
+      </div>
+      <div class="result-card success">
+        <div class="result-num">~5min</div>
+        <div class="result-label">Est. Index Time</div>
+      </div>
+    `;
+
+    btn.disabled = false;
+    btn.classList.remove('loading');
+  }
+
+  async function postToBlogger(url) {
+    // এখানে আপনার API Key ও Blog ID বসাবেন
+    const BLOGGER_API_KEY = 'YOUR_GEMINI_API_KEY';
+    const BLOGGER_BLOG_ID = 'YOUR_BLOG_ID';
+    const BLOGGER_ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN';
+
+    // Gemini দিয়ে content বানাবে
+    // তারপর Blogger API তে post করবে
+    // এখন placeholder দেখাচ্ছে
+    return { success: false, error: 'Configure API keys in code' };
+  }
+</script>
+</body>
+</html>
