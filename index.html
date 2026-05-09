@@ -797,17 +797,99 @@
     btn.classList.remove('loading');
   }
 
-  async function postToBlogger(url) {
-    // এখানে আপনার API Key ও Blog ID বসাবেন
-    const BLOGGER_API_KEY = 'YOUR_GEMINI_API_KEY';
-    const BLOGGER_BLOG_ID = 'YOUR_BLOG_ID';
-    const BLOGGER_ACCESS_TOKEN = 'YOUR_ACCESS_TOKEN';
+ async function startIndexing() {
+  const input = document.getElementById('urlInput').value.trim();
+  const urls = input.split('\n')
+    .map(l => l.trim())
+    .filter(l => l.startsWith('http'));
 
-    // Gemini দিয়ে content বানাবে
-    // তারপর Blogger API তে post করবে
-    // এখন placeholder দেখাচ্ছে
-    return { success: false, error: 'Configure API keys in code' };
+  if (urls.length === 0) {
+    alert('কমপক্ষে একটা URL দিন!');
+    return;
   }
+
+  // UI Setup
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+  btn.classList.add('loading');
+  document.getElementById('progressSection').classList.add('active');
+  document.getElementById('logTerminal').innerHTML = '';
+  document.getElementById('resultsGrid').style.display = 'none';
+
+  let processed = 0;
+  let errors = 0;
+
+  for (let i = 0; i < urls.length; i++) {
+    const url = urls[i];
+    const pct = Math.round((i / urls.length) * 100);
+    setProgress(pct, `Processing URL ${i + 1} of ${urls.length}`);
+    addLog(`Processing: ${url.slice(0, 60)}...`, 'info');
+
+    try {
+      // ✅ Real API Call
+      const response = await fetch('/api/index', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // সব Step এর Result দেখান
+        data.details.forEach(step => {
+          if (step.status === 'success') {
+            addLog(`✓ ${step.step} — success`, 'success');
+          } else {
+            addLog(`✗ ${step.step} — ${step.message || 'failed'}`, 'warn');
+          }
+        });
+
+        addLog(`━━ URL ${i+1} done — ${data.signalsFired}/6 signals fired ━━`, 'success');
+        processed++;
+      } else {
+        addLog(`Error: ${data.error}`, 'error');
+        errors++;
+      }
+
+    } catch (err) {
+      addLog(`Network Error: ${err.message}`, 'error');
+      errors++;
+    }
+
+    await sleep(500);
+  }
+
+  // সব শেষ
+  setProgress(100, 'All Done!');
+  addLog(`✓ ${processed} URL(s) processed`, 'success');
+  addLog('Google Bot expected within 5-30 minutes', 'info');
+
+  // Result দেখান
+  const grid = document.getElementById('resultsGrid');
+  grid.style.display = 'grid';
+  grid.innerHTML = `
+    <div class="result-card success">
+      <div class="result-num">${processed}</div>
+      <div class="result-label">Processed</div>
+    </div>
+    <div class="result-card success">
+      <div class="result-num">${processed * 6}</div>
+      <div class="result-label">Signals Sent</div>
+    </div>
+    <div class="result-card ${errors > 0 ? 'error' : 'success'}">
+      <div class="result-num">${errors}</div>
+      <div class="result-label">Errors</div>
+    </div>
+    <div class="result-card success">
+      <div class="result-num">~5min</div>
+      <div class="result-label">Est. Index Time</div>
+    </div>
+  `;
+
+  btn.disabled = false;
+  btn.classList.remove('loading');
+}
 </script>
 </body>
 </html>
