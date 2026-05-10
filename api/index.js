@@ -23,7 +23,6 @@ export default async function handler(req, res) {
 
   const results = [];
 
-  // Access Token নেওয়া
   async function getAccessToken() {
     const response = await fetch('https://oauth2.googleapis.com/token', {
       method: 'POST',
@@ -43,7 +42,7 @@ export default async function handler(req, res) {
   try {
 
     // ================================
-    // STEP 1: Gemini 1.5 Flash দিয়ে Content
+    // STEP 1: Gemini দিয়ে Content
     // ================================
     let generatedContent = '';
     let generatedTitle = '';
@@ -82,27 +81,27 @@ URL to write about: ${url}`
       const geminiData = await geminiRes.json();
       const fullText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
 
-      if (fullText) {
+      if (fullText && fullText.length > 20) {
         const lines = fullText.split('\n').filter(l => l.trim());
         generatedTitle = lines[0] || `Resource: ${new URL(url).hostname}`;
         const bodyLines = lines.slice(1).join('<br><br>');
         generatedContent = `<p>${bodyLines}</p><br><p><a href="${url}">${url}</a></p>`;
         results.push({ step: 'gemini', status: 'success', message: 'Content generated' });
       } else {
-        throw new Error('Empty response from Gemini');
+        throw new Error('Empty response');
       }
 
     } catch (e) {
-      // Fallback Content
+      // Fallback Content — Gemini ছাড়াও কাজ করবে
       const hostname = new URL(url).hostname;
-      generatedTitle = `Discover ${hostname} — New Resource`;
-      generatedContent = `<p>Looking for reliable and up-to-date information? ${hostname} is a valuable online resource that provides useful content for readers. Whether you are searching for the latest updates, guides, or insights, this website offers a wide range of topics to explore.</p><p>The page linked below contains important information that is worth reading. Make sure to check it out for the most recent updates and detailed content available on this topic.</p><p>Visit the resource here: <a href="${url}">${url}</a></p>`;
-      results.push({ step: 'gemini', status: 'error', message: e.message });
+      generatedTitle = `Discover ${hostname} — Important Resource`;
+      generatedContent = `<p>Looking for reliable and up-to-date information online? ${hostname} is a valuable resource that provides useful content for readers across various topics. Whether you are searching for the latest updates, detailed guides, or expert insights, this website offers a wide range of information worth exploring.</p><p>The page linked below contains important information that is regularly updated. Make sure to visit and bookmark it for future reference. This resource has been recommended for its quality content and informative articles.</p><p>Visit here: <a href="${url}">${url}</a></p>`;
+      results.push({ step: 'gemini', status: 'warn', message: 'Using fallback content' });
     }
 
 
     // ================================
-    // STEP 2: Access Token নিন
+    // STEP 2: Access Token
     // ================================
     let accessToken = '';
     try {
@@ -114,7 +113,7 @@ URL to write about: ${url}`
 
 
     // ================================
-    // STEP 3: Blogger এ Post
+    // STEP 3: Blogger Post
     // ================================
     let bloggerPostUrl = '';
 
@@ -137,14 +136,12 @@ URL to write about: ${url}`
         );
 
         const bloggerData = await bloggerRes.json();
-
         if (bloggerData.url) {
           bloggerPostUrl = bloggerData.url;
           results.push({ step: 'blogger', status: 'success', postUrl: bloggerPostUrl });
         } else {
           results.push({ step: 'blogger', status: 'error', message: JSON.stringify(bloggerData) });
         }
-
       } catch (e) {
         results.push({ step: 'blogger', status: 'error', message: e.message });
       }
@@ -170,19 +167,27 @@ URL to write about: ${url}`
 
 
     // ================================
-    // STEP 5: Google Sitemap Ping
+    // STEP 5: Yandex IndexNow
+    // (Google Ping বন্ধ হয়ে গেছে তাই Yandex)
     // ================================
     try {
-      const sitemapUrl = `https://${CONFIG.YOUR_DOMAIN}/sitemap.xml`;
-      await fetch(`https://www.google.com/ping?sitemap=${encodeURIComponent(sitemapUrl)}`);
-      results.push({ step: 'google_ping', status: 'success' });
+      await fetch('https://yandex.com/indexnow', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          host: CONFIG.YOUR_DOMAIN,
+          key: CONFIG.INDEXNOW_KEY,
+          urlList: [url]
+        })
+      });
+      results.push({ step: 'yandex_indexnow', status: 'success' });
     } catch (e) {
-      results.push({ step: 'google_ping', status: 'error', message: e.message });
+      results.push({ step: 'yandex_indexnow', status: 'error', message: e.message });
     }
 
 
     // ================================
-    // STEP 6: IndexNow
+    // STEP 6: IndexNow API
     // ================================
     try {
       await fetch('https://api.indexnow.org/indexnow', {
@@ -220,7 +225,7 @@ URL to write about: ${url}`
 
 
     // ================================
-    // Result পাঠান
+    // Result
     // ================================
     const successCount = results.filter(r => r.status === 'success').length;
 
