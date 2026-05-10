@@ -1,5 +1,5 @@
 // api/index.js — Vercel Serverless Function
-// এই ফাইলটা Vercel এ Deploy করুন
+// Refresh Token দিয়ে Auto Access Token নেয়
 
 export default async function handler(req, res) {
   // CORS headers
@@ -14,17 +14,45 @@ export default async function handler(req, res) {
   if (!url) return res.status(400).json({ error: 'URL required' });
 
   // ============================
-  // আপনার Config এখানে বসান
+  // Config — Vercel Env Variables
   // ============================
   const CONFIG = {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     BLOGGER_BLOG_ID: process.env.BLOGGER_BLOG_ID,
-    BLOGGER_ACCESS_TOKEN: process.env.BLOGGER_ACCESS_TOKEN,
-    INDEXNOW_KEY: process.env.INDEXNOW_KEY || 'your-indexnow-key',
-    YOUR_DOMAIN: process.env.YOUR_DOMAIN || 'indexing-master.vercel.app',
+    BLOGGER_CLIENT_ID: process.env.BLOGGER_CLIENT_ID,
+    BLOGGER_CLIENT_SECRET: process.env.BLOGGER_CLIENT_SECRET,
+    BLOGGER_REFRESH_TOKEN: process.env.BLOGGER_REFRESH_TOKEN,
+    INDEXNOW_KEY: process.env.INDEXNOW_KEY || 'indexforce123',
+    YOUR_DOMAIN: process.env.YOUR_DOMAIN || 'indexing-engine-cyan.vercel.app',
   };
 
   const results = [];
+
+  // ================================
+  // Refresh Token দিয়ে Access Token নেওয়া
+  // এটা কখনো Expire হবে না ✅
+  // ================================
+  async function getAccessToken() {
+    try {
+      const response = await fetch('https://oauth2.googleapis.com/token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          client_id: CONFIG.BLOGGER_CLIENT_ID,
+          client_secret: CONFIG.BLOGGER_CLIENT_SECRET,
+          refresh_token: CONFIG.BLOGGER_REFRESH_TOKEN,
+          grant_type: 'refresh_token'
+        })
+      });
+      const data = await response.json();
+      if (data.access_token) {
+        return data.access_token;
+      }
+      throw new Error('Token refresh failed: ' + JSON.stringify(data));
+    } catch (e) {
+      throw new Error('getAccessToken error: ' + e.message);
+    }
+  }
 
   try {
 
@@ -43,13 +71,18 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `Write a unique 100-word SEO article about this URL. 
-                Make it natural and informative. 
-                End with the URL as a reference link.
-                URL: ${url}
-                
-                Format: First line = title, then article content.
-                Do not use markdown.`
+                text: `Write a unique 100-word SEO article about this URL.
+Make it natural and informative.
+End with the URL as a clickable reference link.
+URL: ${url}
+
+Format:
+First line = article title (no markdown, plain text)
+Then blank line
+Then article body
+Then at the end: <a href="${url}">${url}</a>
+
+Do not use markdown symbols like # or **.`
               }]
             }]
           })
@@ -59,48 +92,72 @@ export default async function handler(req, res) {
       const geminiData = await geminiRes.json();
       const fullText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
       const lines = fullText.split('\n').filter(l => l.trim());
-      generatedTitle = lines[0] || `Indexing: ${url}`;
-      generatedContent = lines.slice(1).join('\n') + `\n\n<a href="${url}">${url}</a>`;
+      generatedTitle = lines[0] || `Fast Index: ${new URL(url).hostname}`;
+      generatedContent = lines.slice(1).join('<br>') + `<br><br><a href="${url}">${url}</a>`;
       results.push({ step: 'gemini', status: 'success', message: 'Content generated' });
+
     } catch (e) {
-      generatedTitle = `Fast Index: ${new URL(url).hostname}`;
-      generatedContent = `Visit this resource: <a href="${url}">${url}</a>`;
+      // Gemini কাজ না করলে Default Content
+      generatedTitle = `Resource: ${new URL(url).hostname}`;
+      generatedContent = `This is an important resource worth visiting. Check out the latest updates and information available at this link.<br><br><a href="${url}">${url}</a>`;
       results.push({ step: 'gemini', status: 'error', message: e.message });
     }
 
 
     // ================================
-    // STEP 2: Blogger এ Post করা
+    // STEP 2: Access Token নিন
     // ================================
-    let bloggerPostUrl = '';
-
+    let accessToken = '';
     try {
-      const bloggerRes = await fetch(
-        `https://www.googleapis.com/blogger/v3/blogs/${CONFIG.BLOGGER_BLOG_ID}/posts/`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${CONFIG.BLOGGER_ACCESS_TOKEN}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            kind: 'blogger#post',
-            title: generatedTitle,
-            content: generatedContent,
-          })
-        }
-      );
-
-      const bloggerData = await bloggerRes.json();
-      bloggerPostUrl = bloggerData?.url || '';
-      results.push({ step: 'blogger', status: 'success', postUrl: bloggerPostUrl });
+      accessToken = await getAccessToken();
+      results.push({ step: 'token_refresh', status: 'success', message: 'Access token refreshed' });
     } catch (e) {
-      results.push({ step: 'blogger', status: 'error', message: e.message });
+      results.push({ step: 'token_refresh', status: 'error', message: e.message });
     }
 
 
     // ================================
-    // STEP 3: PubSubHubbub Ping
+    // STEP 3: Blogger এ Post করা
+    // ================================
+    let bloggerPostUrl = '';
+
+    if (accessToken) {
+      try {
+        const bloggerRes = await fetch(
+          `https://www.googleapis.com/blogger/v3/blogs/${CONFIG.BLOGGER_BLOG_ID}/posts/`,
+          {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              kind: 'blogger#post',
+              title: generatedTitle,
+              content: generatedContent,
+            })
+          }
+        );
+
+        const bloggerData = await bloggerRes.json();
+
+        if (bloggerData.url) {
+          bloggerPostUrl = bloggerData.url;
+          results.push({ step: 'blogger', status: 'success', postUrl: bloggerPostUrl });
+        } else {
+          results.push({ step: 'blogger', status: 'error', message: JSON.stringify(bloggerData) });
+        }
+
+      } catch (e) {
+        results.push({ step: 'blogger', status: 'error', message: e.message });
+      }
+    } else {
+      results.push({ step: 'blogger', status: 'error', message: 'No access token' });
+    }
+
+
+    // ================================
+    // STEP 4: PubSubHubbub Ping
     // ================================
     try {
       const blogRssFeed = `https://${CONFIG.BLOGGER_BLOG_ID}.blogspot.com/feeds/posts/default`;
@@ -118,7 +175,7 @@ export default async function handler(req, res) {
 
 
     // ================================
-    // STEP 4: Google Sitemap Ping
+    // STEP 5: Google Sitemap Ping
     // ================================
     try {
       const sitemapUrl = `https://${CONFIG.YOUR_DOMAIN}/sitemap.xml`;
@@ -130,7 +187,7 @@ export default async function handler(req, res) {
 
 
     // ================================
-    // STEP 5: IndexNow (Bing/Yandex)
+    // STEP 6: IndexNow API
     // ================================
     try {
       await fetch('https://api.indexnow.org/indexnow', {
@@ -149,7 +206,7 @@ export default async function handler(req, res) {
 
 
     // ================================
-    // STEP 6: Bing IndexNow Direct
+    // STEP 7: Bing IndexNow
     // ================================
     try {
       await fetch('https://www.bing.com/indexnow', {
@@ -170,14 +227,16 @@ export default async function handler(req, res) {
     // ================================
     // সব শেষে Result পাঠান
     // ================================
+    const successCount = results.filter(r => r.status === 'success').length;
+
     return res.status(200).json({
       success: true,
       url: url,
       bloggerPost: bloggerPostUrl,
-      signalsFired: results.filter(r => r.status === 'success').length,
+      signalsFired: successCount,
       totalSteps: results.length,
       details: results,
-      message: 'All signals fired! Google Bot expected within 5-30 minutes.'
+      message: `${successCount}/${results.length} signals fired! Google Bot expected within 5-30 minutes.`
     });
 
   } catch (error) {
