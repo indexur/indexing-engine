@@ -1,8 +1,6 @@
 // api/index.js — Vercel Serverless Function
-// Refresh Token দিয়ে Auto Access Token নেয়
 
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
@@ -13,9 +11,6 @@ export default async function handler(req, res) {
   const { url } = req.body;
   if (!url) return res.status(400).json({ error: 'URL required' });
 
-  // ============================
-  // Config — Vercel Env Variables
-  // ============================
   const CONFIG = {
     GEMINI_API_KEY: process.env.GEMINI_API_KEY,
     BLOGGER_BLOG_ID: process.env.BLOGGER_BLOG_ID,
@@ -28,36 +23,27 @@ export default async function handler(req, res) {
 
   const results = [];
 
-  // ================================
-  // Refresh Token দিয়ে Access Token নেওয়া
-  // এটা কখনো Expire হবে না ✅
-  // ================================
+  // Access Token নেওয়া
   async function getAccessToken() {
-    try {
-      const response = await fetch('https://oauth2.googleapis.com/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({
-          client_id: CONFIG.BLOGGER_CLIENT_ID,
-          client_secret: CONFIG.BLOGGER_CLIENT_SECRET,
-          refresh_token: CONFIG.BLOGGER_REFRESH_TOKEN,
-          grant_type: 'refresh_token'
-        })
-      });
-      const data = await response.json();
-      if (data.access_token) {
-        return data.access_token;
-      }
-      throw new Error('Token refresh failed: ' + JSON.stringify(data));
-    } catch (e) {
-      throw new Error('getAccessToken error: ' + e.message);
-    }
+    const response = await fetch('https://oauth2.googleapis.com/token', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        client_id: CONFIG.BLOGGER_CLIENT_ID,
+        client_secret: CONFIG.BLOGGER_CLIENT_SECRET,
+        refresh_token: CONFIG.BLOGGER_REFRESH_TOKEN,
+        grant_type: 'refresh_token'
+      })
+    });
+    const data = await response.json();
+    if (data.access_token) return data.access_token;
+    throw new Error('Token refresh failed: ' + JSON.stringify(data));
   }
 
   try {
 
     // ================================
-    // STEP 1: Gemini দিয়ে Content তৈরি
+    // STEP 1: Gemini 1.5 Flash দিয়ে Content
     // ================================
     let generatedContent = '';
     let generatedTitle = '';
@@ -71,35 +57,46 @@ export default async function handler(req, res) {
           body: JSON.stringify({
             contents: [{
               parts: [{
-                text: `Write a unique 100-word SEO article about this URL.
-Make it natural and informative.
-End with the URL as a clickable reference link.
-URL: ${url}
+                text: `Write a unique 150-word SEO article about the following URL.
+Write naturally as if describing what the page is about.
+Do not use markdown symbols like # or **.
+Do not mention that you are an AI.
 
 Format:
-First line = article title (no markdown, plain text)
-Then blank line
-Then article body
-Then at the end: <a href="${url}">${url}</a>
+Line 1: Article title (plain text only)
+Line 2: blank
+Line 3 onwards: Article body (minimum 100 words)
+Last line: Reference - ${url}
 
-Do not use markdown symbols like # or **.`
+URL to write about: ${url}`
               }]
-            }]
+            }],
+            generationConfig: {
+              temperature: 0.9,
+              maxOutputTokens: 500,
+            }
           })
         }
       );
 
       const geminiData = await geminiRes.json();
       const fullText = geminiData?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-      const lines = fullText.split('\n').filter(l => l.trim());
-      generatedTitle = lines[0] || `Fast Index: ${new URL(url).hostname}`;
-      generatedContent = lines.slice(1).join('<br>') + `<br><br><a href="${url}">${url}</a>`;
-      results.push({ step: 'gemini', status: 'success', message: 'Content generated' });
+
+      if (fullText) {
+        const lines = fullText.split('\n').filter(l => l.trim());
+        generatedTitle = lines[0] || `Resource: ${new URL(url).hostname}`;
+        const bodyLines = lines.slice(1).join('<br><br>');
+        generatedContent = `<p>${bodyLines}</p><br><p><a href="${url}">${url}</a></p>`;
+        results.push({ step: 'gemini', status: 'success', message: 'Content generated' });
+      } else {
+        throw new Error('Empty response from Gemini');
+      }
 
     } catch (e) {
-      // Gemini কাজ না করলে Default Content
-      generatedTitle = `Resource: ${new URL(url).hostname}`;
-      generatedContent = `This is an important resource worth visiting. Check out the latest updates and information available at this link.<br><br><a href="${url}">${url}</a>`;
+      // Fallback Content
+      const hostname = new URL(url).hostname;
+      generatedTitle = `Discover ${hostname} — New Resource`;
+      generatedContent = `<p>Looking for reliable and up-to-date information? ${hostname} is a valuable online resource that provides useful content for readers. Whether you are searching for the latest updates, guides, or insights, this website offers a wide range of topics to explore.</p><p>The page linked below contains important information that is worth reading. Make sure to check it out for the most recent updates and detailed content available on this topic.</p><p>Visit the resource here: <a href="${url}">${url}</a></p>`;
       results.push({ step: 'gemini', status: 'error', message: e.message });
     }
 
@@ -110,14 +107,14 @@ Do not use markdown symbols like # or **.`
     let accessToken = '';
     try {
       accessToken = await getAccessToken();
-      results.push({ step: 'token_refresh', status: 'success', message: 'Access token refreshed' });
+      results.push({ step: 'token_refresh', status: 'success' });
     } catch (e) {
       results.push({ step: 'token_refresh', status: 'error', message: e.message });
     }
 
 
     // ================================
-    // STEP 3: Blogger এ Post করা
+    // STEP 3: Blogger এ Post
     // ================================
     let bloggerPostUrl = '';
 
@@ -161,13 +158,11 @@ Do not use markdown symbols like # or **.`
     // ================================
     try {
       const blogRssFeed = `https://${CONFIG.BLOGGER_BLOG_ID}.blogspot.com/feeds/posts/default`;
-
       await fetch('https://pubsubhubbub.appspot.com/publish', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
         body: `hub.mode=publish&hub.url=${encodeURIComponent(blogRssFeed)}`
       });
-
       results.push({ step: 'pubsubhubbub', status: 'success' });
     } catch (e) {
       results.push({ step: 'pubsubhubbub', status: 'error', message: e.message });
@@ -187,7 +182,7 @@ Do not use markdown symbols like # or **.`
 
 
     // ================================
-    // STEP 6: IndexNow API
+    // STEP 6: IndexNow
     // ================================
     try {
       await fetch('https://api.indexnow.org/indexnow', {
@@ -225,7 +220,7 @@ Do not use markdown symbols like # or **.`
 
 
     // ================================
-    // সব শেষে Result পাঠান
+    // Result পাঠান
     // ================================
     const successCount = results.filter(r => r.status === 'success').length;
 
