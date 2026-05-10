@@ -67,12 +67,7 @@
     margin-bottom: 60px;
   }
 
-  .logo {
-    font-size: 22px;
-    font-weight: 800;
-    letter-spacing: -0.5px;
-  }
-
+  .logo { font-size: 22px; font-weight: 800; letter-spacing: -0.5px; }
   .logo span { color: var(--accent); }
 
   .badge {
@@ -85,10 +80,7 @@
     border-radius: 20px;
   }
 
-  .hero {
-    text-align: center;
-    margin-bottom: 50px;
-  }
+  .hero { text-align: center; margin-bottom: 50px; }
 
   .hero h1 {
     font-size: clamp(36px, 6vw, 64px);
@@ -167,10 +159,7 @@
     font-family: 'JetBrains Mono', monospace;
   }
 
-  .url-input-wrap {
-    position: relative;
-    margin-bottom: 16px;
-  }
+  .url-input-wrap { position: relative; margin-bottom: 16px; }
 
   .url-input-wrap textarea {
     width: 100%;
@@ -263,12 +252,7 @@
   }
 
   .submit-btn:active { transform: translateY(0); }
-
-  .submit-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    transform: none;
-  }
+  .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
 
   .submit-btn .btn-inner {
     display: flex;
@@ -341,7 +325,7 @@
 
   .log-time { color: var(--muted); min-width: 60px; }
   .log-status { min-width: 20px; }
-  .log-msg { color: var(--text); }
+  .log-msg { color: var(--text); word-break: break-all; }
   .log-success .log-status { color: var(--accent); }
   .log-error .log-status { color: var(--danger); }
   .log-info .log-status { color: var(--accent2); }
@@ -500,7 +484,7 @@
         <div class="dot"></div>Blogger Network
       </div>
       <div class="option-chip active" id="opt-ping" onclick="toggleOption('ping')">
-        <div class="dot"></div> Ping
+        <div class="dot"></div>Yandex Ping
       </div>
       <div class="option-chip active" id="opt-indexnow" onclick="toggleOption('indexnow')">
         <div class="dot"></div>IndexNow
@@ -536,32 +520,32 @@
       <div class="step">
         <div class="step-num">01 —</div>
         <div class="step-title">URL Submit</div>
-        <div class="step-desc">ok</div>
+        <div class="step-desc">আপনার URL জমা নেওয়া হয় এবং Duplicate চেক করা হয়</div>
       </div>
       <div class="step">
         <div class="step-num">02 —</div>
-        <div class="step-title">C Generate</div>
-        <div class="step-desc">ok</div>
+        <div class="step-title">Content Generate</div>
+        <div class="step-desc">AI দিয়ে আলাদা আলাদা SEO Content তৈরি হয়</div>
       </div>
       <div class="step">
         <div class="step-num">03 —</div>
-        <div class="step-title">ger Post</div>
-        <div class="step-desc">ok</div>
+        <div class="step-title">Blogger Post</div>
+        <div class="step-desc">Blogger সাইটে Auto Post হয় URL সহ</div>
       </div>
       <div class="step">
         <div class="step-num">04 —</div>
         <div class="step-title">6x Signal Fire</div>
-        <div class="step-desc">ে</div>
+        <div class="step-desc">PubSubHubbub, IndexNow, Bing, Yandex একসাথে</div>
       </div>
       <div class="step">
         <div class="step-num">05 —</div>
         <div class="step-title">Bot Arrives</div>
-        <div class="step-desc">ok</div>
+        <div class="step-desc">Google Bot ৬টা দিক থেকে ডাক পেয়ে দ্রুত আসে</div>
       </div>
       <div class="step">
         <div class="step-num">06 —</div>
         <div class="step-title">Indexed ✓</div>
-        <div class="step-desc">ok</div>
+        <div class="step-desc">১–৩০ মিনিটের মধ্যে Index হওয়ার সম্ভাবনা তৈরি হয়</div>
       </div>
     </div>
   </div>
@@ -575,7 +559,6 @@
 <script>
   const options = { blogger: true, ping: true, indexnow: true, rss: true };
 
-  // URL Counter
   document.getElementById('urlInput').addEventListener('input', function() {
     const lines = this.value.split('\n').filter(l => l.trim().startsWith('http'));
     document.getElementById('urlCount').textContent = lines.length + ' URL' + (lines.length !== 1 ? 's' : '');
@@ -621,7 +604,6 @@
       return;
     }
 
-    // UI Setup
     const btn = document.getElementById('submitBtn');
     btn.disabled = true;
     btn.classList.add('loading');
@@ -639,7 +621,6 @@
       addLog(`Processing: ${url.slice(0, 60)}...`, 'info');
 
       try {
-        // ✅ Real API Call to Backend
         const response = await fetch('/api/index', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -649,7 +630,6 @@
         const data = await response.json();
 
         if (data.success) {
-          // প্রতিটা Step এর Result দেখান
           if (data.details && data.details.length > 0) {
             data.details.forEach(step => {
               if (step.status === 'success') {
@@ -674,12 +654,10 @@
       await sleep(500);
     }
 
-    // সব শেষ
     setProgress(100, 'All Done!');
     addLog(`✓ Total ${processed} URL(s) processed successfully`, 'success');
     addLog('Google Bot expected within 5-30 minutes', 'info');
 
-    // Result Card দেখান
     const grid = document.getElementById('resultsGrid');
     grid.style.display = 'grid';
     grid.innerHTML = `
