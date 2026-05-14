@@ -702,6 +702,42 @@
 
   // এটি টেস্ট করার জন্য (নিচের লাইনটি পরে আপনার বাটন বা ফাংশনে ব্যবহার করবেন)
   // sendUrlToDatabase('Test Post', 'https://example.com/test');
+  async function startIndexing() {
+  const btn = document.getElementById('submitBtn');
+  const textArea = document.querySelector('.url-input'); // আপনার টেক্সট এরিয়ার ক্লাস অনুযায়ী এটি চেক করে নিন
+  const urls = textArea.value.split('\n').filter(url => url.trim() !== "");
+
+  if (urls.length === 0) {
+    alert("দয়া করে অন্তত একটি ইউআরএল দিন।");
+    return;
+  }
+
+  // বাটন লোডিং স্টেট (Spinner দেখানোর জন্য)
+  btn.classList.add('loading');
+  btn.disabled = true;
+
+  try {
+    for (const targetUrl of urls) {
+      // আপনার তৈরি করা ভেরসেল এপিআই-তে ডাটা পাঠানো
+      await fetch('https://indexing-master.vercel.app/api/add', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          title: 'Manual Submit', 
+          url: targetUrl.trim() 
+        }),
+      });
+    }
+    alert("সফলভাবে সুপাবেস ডাটাবেসে জমা হয়েছে!");
+  } catch (error) {
+    console.error('Error:', error);
+    alert("ডাটা পাঠাতে সমস্যা হয়েছে।");
+  } finally {
+    // বাটন আগের অবস্থায় ফিরিয়ে আনা
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+}
 </script>
 </body>
 </html>
