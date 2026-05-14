@@ -683,5 +683,25 @@
     btn.classList.remove('loading');
   }
 </script>
+<script>
+  async function sendUrlToDatabase(title, url) {
+    try {
+      const response = await fetch('https://indexing-master.vercel.app/api/add', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title: title, url: url }),
+      });
+      const result = await response.json();
+      console.log('Success:', result);
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  // এটি টেস্ট করার জন্য (নিচের লাইনটি পরে আপনার বাটন বা ফাংশনে ব্যবহার করবেন)
+  // sendUrlToDatabase('Test Post', 'https://example.com/test');
+</script>
 </body>
 </html>
