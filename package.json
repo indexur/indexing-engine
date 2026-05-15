@@ -1,7 +1,27 @@
 {
-  "name": "indexing-engine",
-  "version": "1.0.0",
-  "dependencies": {
-    "@supabase/supabase-js": "^2.39.0"
-  }
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/*.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/submit",
+      "dest": "/api/submit.js"
+    },
+    {
+      "src": "/api/index",
+      "dest": "/api/index.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ]
 }
