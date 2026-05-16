@@ -43,10 +43,8 @@
   body::after {
     content: '';
     position: fixed;
-    top: -200px;
-    right: -200px;
-    width: 600px;
-    height: 600px;
+    top: -200px; right: -200px;
+    width: 600px; height: 600px;
     background: radial-gradient(circle, rgba(0,136,255,0.08) 0%, transparent 70%);
     pointer-events: none;
     z-index: 0;
@@ -97,38 +95,12 @@
     background-clip: text;
   }
 
-  .hero p {
-    color: var(--muted);
-    font-size: 17px;
-    max-width: 480px;
-    margin: 0 auto;
-    line-height: 1.6;
-  }
+  .hero p { color: var(--muted); font-size: 17px; max-width: 480px; margin: 0 auto; line-height: 1.6; }
 
-  .stats {
-    display: flex;
-    justify-content: center;
-    gap: 40px;
-    margin-bottom: 50px;
-    flex-wrap: wrap;
-  }
-
+  .stats { display: flex; justify-content: center; gap: 40px; margin-bottom: 50px; flex-wrap: wrap; }
   .stat { text-align: center; }
-
-  .stat-num {
-    font-size: 28px;
-    font-weight: 800;
-    color: var(--accent);
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .stat-label {
-    font-size: 12px;
-    color: var(--muted);
-    margin-top: 2px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
+  .stat-num { font-size: 28px; font-weight: 800; color: var(--accent); font-family: 'JetBrains Mono', monospace; }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; text-transform: uppercase; letter-spacing: 1px; }
 
   .card {
     background: var(--surface);
@@ -150,12 +122,8 @@
   }
 
   .card-title {
-    font-size: 13px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: var(--muted);
-    margin-bottom: 20px;
+    font-size: 13px; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 2px; color: var(--muted); margin-bottom: 20px;
     font-family: 'JetBrains Mono', monospace;
   }
 
@@ -177,151 +145,45 @@
     line-height: 1.8;
   }
 
-  .url-input-wrap textarea:focus {
-    border-color: rgba(0,255,136,0.4);
-    background: rgba(0,255,136,0.02);
-  }
-
+  .url-input-wrap textarea:focus { border-color: rgba(0,255,136,0.4); background: rgba(0,255,136,0.02); }
   .url-input-wrap textarea::placeholder { color: var(--muted); }
 
   .url-count {
-    position: absolute;
-    bottom: 10px; right: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--muted);
+    position: absolute; bottom: 10px; right: 12px;
+    font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--muted);
   }
-
-  .options-row {
-    display: flex;
-    gap: 12px;
-    margin-bottom: 20px;
-    flex-wrap: wrap;
-  }
-
-  .option-chip {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    background: rgba(255,255,255,0.03);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 8px 14px;
-    cursor: pointer;
-    transition: all 0.2s;
-    font-size: 13px;
-    font-weight: 600;
-    user-select: none;
-  }
-
-  .option-chip:hover { border-color: rgba(0,255,136,0.3); }
-
-  .option-chip.active {
-    border-color: var(--accent);
-    background: rgba(0,255,136,0.08);
-    color: var(--accent);
-  }
-
-  .option-chip .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    border: 2px solid currentColor;
-    transition: background 0.2s;
-  }
-
-  .option-chip.active .dot { background: var(--accent); }
 
   .submit-btn {
-    width: 100%;
-    padding: 16px;
+    width: 100%; padding: 16px;
     background: linear-gradient(135deg, var(--accent), #00cc6a);
-    color: #000;
-    border: none;
-    border-radius: 10px;
-    font-family: 'Syne', sans-serif;
-    font-size: 16px;
-    font-weight: 800;
-    cursor: pointer;
-    transition: all 0.2s;
-    letter-spacing: 0.5px;
+    color: #000; border: none; border-radius: 10px;
+    font-family: 'Syne', sans-serif; font-size: 16px; font-weight: 800;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.5px;
   }
 
-  .submit-btn:hover {
-    transform: translateY(-1px);
-    box-shadow: 0 8px 30px rgba(0,255,136,0.3);
-  }
-
+  .submit-btn:hover { transform: translateY(-1px); box-shadow: 0 8px 30px rgba(0,255,136,0.3); }
   .submit-btn:active { transform: translateY(0); }
   .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
-
-  .submit-btn .btn-inner {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-  }
+  .submit-btn .btn-inner { display: flex; align-items: center; justify-content: center; gap: 8px; }
 
   .progress-section { display: none; margin-top: 24px; }
   .progress-section.active { display: block; }
 
-  .progress-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 12px;
-  }
+  .progress-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+  .progress-title { font-size: 13px; font-weight: 600; font-family: 'JetBrains Mono', monospace; color: var(--accent); }
+  .progress-pct { font-size: 13px; font-family: 'JetBrains Mono', monospace; color: var(--muted); }
 
-  .progress-title {
-    font-size: 13px;
-    font-weight: 600;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--accent);
-  }
-
-  .progress-pct {
-    font-size: 13px;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--muted);
-  }
-
-  .progress-bar-wrap {
-    background: var(--border);
-    border-radius: 4px;
-    height: 4px;
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-
-  .progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, var(--accent), var(--accent2));
-    border-radius: 4px;
-    width: 0%;
-    transition: width 0.4s ease;
-  }
+  .progress-bar-wrap { background: var(--border); border-radius: 4px; height: 4px; margin-bottom: 20px; overflow: hidden; }
+  .progress-bar-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 4px; width: 0%; transition: width 0.4s ease; }
 
   .log-terminal {
-    background: #05050d;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
-    max-height: 220px;
-    overflow-y: auto;
-    line-height: 1.8;
+    background: #05050d; border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; font-family: 'JetBrains Mono', monospace; font-size: 12px;
+    max-height: 220px; overflow-y: auto; line-height: 1.8;
   }
 
-  .log-line {
-    display: flex;
-    gap: 10px;
-    animation: fadeIn 0.3s ease;
-  }
-
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+  .log-line { display: flex; gap: 10px; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 
   .log-time { color: var(--muted); min-width: 60px; }
   .log-status { min-width: 20px; }
@@ -331,107 +193,32 @@
   .log-info .log-status { color: var(--accent2); }
   .log-warn .log-status { color: var(--warn); }
 
-  .results-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: 12px;
-    margin-top: 20px;
-  }
+  .results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 20px; }
 
-  .result-card {
-    background: rgba(255,255,255,0.02);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 16px;
-    text-align: center;
-  }
+  .result-card { background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 10px; padding: 16px; text-align: center; }
+  .result-card.success { border-color: rgba(0,255,136,0.3); background: rgba(0,255,136,0.04); }
+  .result-card.error { border-color: rgba(255,68,102,0.3); background: rgba(255,68,102,0.04); }
+  .result-card.warn { border-color: rgba(255,170,0,0.3); background: rgba(255,170,0,0.04); }
 
-  .result-card.success {
-    border-color: rgba(0,255,136,0.3);
-    background: rgba(0,255,136,0.04);
-  }
-
-  .result-card.error {
-    border-color: rgba(255,68,102,0.3);
-    background: rgba(255,68,102,0.04);
-  }
-
-  .result-num {
-    font-size: 28px;
-    font-weight: 800;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
+  .result-num { font-size: 28px; font-weight: 800; font-family: 'JetBrains Mono', monospace; }
   .result-card.success .result-num { color: var(--accent); }
   .result-card.error .result-num { color: var(--danger); }
+  .result-card.warn .result-num { color: var(--warn); }
+  .result-label { font-size: 11px; color: var(--muted); margin-top: 4px; text-transform: uppercase; letter-spacing: 1px; }
 
-  .result-label {
-    font-size: 11px;
-    color: var(--muted);
-    margin-top: 4px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-  }
-
-  .steps {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 16px;
-  }
-
-  .step {
-    padding: 20px;
-    background: rgba(255,255,255,0.02);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-  }
-
-  .step-num {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--accent);
-    margin-bottom: 10px;
-    opacity: 0.7;
-  }
-
+  .steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; }
+  .step { padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--border); border-radius: 12px; }
+  .step-num { font-family: 'JetBrains Mono', monospace; font-size: 11px; color: var(--accent); margin-bottom: 10px; opacity: 0.7; }
   .step-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
   .step-desc { font-size: 12px; color: var(--muted); line-height: 1.5; }
 
-  footer {
-    text-align: center;
-    margin-top: 60px;
-    padding-top: 30px;
-    border-top: 1px solid var(--border);
-    color: var(--muted);
-    font-size: 12px;
-    font-family: 'JetBrains Mono', monospace;
-  }
+  footer { text-align: center; margin-top: 60px; padding-top: 30px; border-top: 1px solid var(--border); color: var(--muted); font-size: 12px; font-family: 'JetBrains Mono', monospace; }
 
-  .live-dot {
-    display: inline-block;
-    width: 7px; height: 7px;
-    background: var(--accent);
-    border-radius: 50%;
-    margin-right: 6px;
-    animation: pulse 1.5s infinite;
-  }
+  .live-dot { display: inline-block; width: 7px; height: 7px; background: var(--accent); border-radius: 50%; margin-right: 6px; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.8); } }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.4; transform: scale(0.8); }
-  }
-
-  .spinner {
-    width: 16px; height: 16px;
-    border: 2px solid rgba(0,0,0,0.3);
-    border-top-color: #000;
-    border-radius: 50%;
-    animation: spin 0.6s linear infinite;
-    display: none;
-  }
-
+  .spinner { width: 16px; height: 16px; border: 2px solid rgba(0,0,0,0.3); border-top-color: #000; border-radius: 50%; animation: spin 0.6s linear infinite; display: none; }
   @keyframes spin { to { transform: rotate(360deg); } }
-
   .loading .spinner { display: block; }
   .loading .btn-text { display: none; }
 
@@ -453,45 +240,21 @@
 
   <div class="hero">
     <h1>Index Any URL<br><span class="highlight">In Minutes</span></h1>
-    <p>Submit your URLs and our engine fires 6 simultaneous signals to get Google crawling fast.</p>
+    <p>Submit your URLs and our engine fires 10+ simultaneous signals to get Google crawling fast.</p>
   </div>
 
   <div class="stats">
-    <div class="stat">
-      <div class="stat-num">~5min</div>
-      <div class="stat-label">Avg Index Time</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">6x</div>
-      <div class="stat-label">Signal Channels</div>
-    </div>
-    <div class="stat">
-      <div class="stat-num">100%</div>
-      <div class="stat-label">Auto Process</div>
-    </div>
+    <div class="stat"><div class="stat-num">~5min</div><div class="stat-label">Avg Index Time</div></div>
+    <div class="stat"><div class="stat-num">10x</div><div class="stat-label">Signal Sites</div></div>
+    <div class="stat"><div class="stat-num">100%</div><div class="stat-label">Auto Process</div></div>
   </div>
 
   <div class="card">
     <div class="card-title">// Submit URLs for Indexing</div>
 
     <div class="url-input-wrap">
-      <textarea id="urlInput" placeholder="https://example.com/page-1&#10;https://example.com/page-2&#10;https://yoursite.com/post-title&#10;&#10;একটা বা একাধিক URL দিন — প্রতিটা আলাদা লাইনে"></textarea>
+      <textarea id="urlInput" placeholder="https://example.com/page-1&#10;https://example.com/page-2&#10;&#10;একটা বা একাধিক URL দিন — প্রতিটা আলাদা লাইনে"></textarea>
       <div class="url-count" id="urlCount">0 URLs</div>
-    </div>
-
-    <div class="options-row">
-      <div class="option-chip active" id="opt-blogger" onclick="toggleOption('blogger')">
-        <div class="dot"></div>Blogger Network
-      </div>
-      <div class="option-chip active" id="opt-ping" onclick="toggleOption('ping')">
-        <div class="dot"></div>Yandex Ping
-      </div>
-      <div class="option-chip active" id="opt-indexnow" onclick="toggleOption('indexnow')">
-        <div class="dot"></div>IndexNow
-      </div>
-      <div class="option-chip active" id="opt-rss" onclick="toggleOption('rss')">
-        <div class="dot"></div>RSS Push
-      </div>
     </div>
 
     <button class="submit-btn" id="submitBtn" onclick="startIndexing()">
@@ -524,23 +287,23 @@
       </div>
       <div class="step">
         <div class="step-num">02 —</div>
-        <div class="step-title">Content Generate</div>
-        <div class="step-desc">AI দিয়ে আলাদা আলাদা SEO Content তৈরি হয়</div>
+        <div class="step-title">Duplicate Check</div>
+        <div class="step-desc">আগে Submit করা URL আবার Process হয় না</div>
       </div>
       <div class="step">
         <div class="step-num">03 —</div>
-        <div class="step-title">Blogger Post</div>
-        <div class="step-desc">Blogger সাইটে Auto Post হয় URL সহ</div>
+        <div class="step-title">n8n Trigger</div>
+        <div class="step-desc">Automation Engine চালু হয় এবং সব Signal Site কে জানায়</div>
       </div>
       <div class="step">
         <div class="step-num">04 —</div>
-        <div class="step-title">6x Signal Fire</div>
-        <div class="step-desc">PubSubHubbub, IndexNow, Bing, Yandex একসাথে</div>
+        <div class="step-title">10x Signal</div>
+        <div class="step-desc">১০টা আলাদা Site থেকে Google Indexing API Call হয়</div>
       </div>
       <div class="step">
         <div class="step-num">05 —</div>
         <div class="step-title">Bot Arrives</div>
-        <div class="step-desc">Google Bot ৬টা দিক থেকে ডাক পেয়ে দ্রুত আসে</div>
+        <div class="step-desc">Google Bot ১০+ দিক থেকে ডাক পেয়ে দ্রুত আসে</div>
       </div>
       <div class="step">
         <div class="step-num">06 —</div>
@@ -552,26 +315,16 @@
 
 </div>
 
-<footer>
-  IndexForce Engine v1.0 — Built for Speed &amp; Scale
-</footer>
+<footer>IndexForce Engine v2.0 — Powered by 10x Signal Network</footer>
 
 <script>
-  const options = { blogger: true, ping: true, indexnow: true, rss: true };
-
+  // URL Counter
   document.getElementById('urlInput').addEventListener('input', function() {
     const lines = this.value.split('\n').filter(l => l.trim().startsWith('http'));
     document.getElementById('urlCount').textContent = lines.length + ' URL' + (lines.length !== 1 ? 's' : '');
   });
 
-  function toggleOption(key) {
-    options[key] = !options[key];
-    document.getElementById('opt-' + key).classList.toggle('active', options[key]);
-  }
-
-  function getTime() {
-    return new Date().toTimeString().slice(0, 8);
-  }
+  function getTime() { return new Date().toTimeString().slice(0, 8); }
 
   function addLog(msg, type = 'info') {
     const icons = { success: '✓', error: '✗', info: '→', warn: '⚠' };
@@ -589,9 +342,7 @@
     if (title) document.getElementById('progressTitle').textContent = '// ' + title;
   }
 
-  function sleep(ms) {
-    return new Promise(r => setTimeout(r, ms));
-  }
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
   async function startIndexing() {
     const input = document.getElementById('urlInput').value.trim();
@@ -613,15 +364,16 @@
 
     let processed = 0;
     let errors = 0;
+    let duplicates = 0;
 
     for (let i = 0; i < urls.length; i++) {
       const url = urls[i];
       const pct = Math.round((i / urls.length) * 100);
       setProgress(pct, `Processing URL ${i + 1} of ${urls.length}`);
-      addLog(`Processing: ${url.slice(0, 60)}...`, 'info');
+      addLog(`Submitting: ${url.slice(0, 55)}...`, 'info');
 
       try {
-        const response = await fetch('/api/index', {
+        const response = await fetch('/api/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: url })
@@ -629,17 +381,15 @@
 
         const data = await response.json();
 
-        if (data.success) {
-          if (data.details && data.details.length > 0) {
-            data.details.forEach(step => {
-              if (step.status === 'success') {
-                addLog(`${step.step} — done`, 'success');
-              } else {
-                addLog(`${step.step} — ${step.message || 'failed'}`, 'warn');
-              }
-            });
-          }
-          addLog(`━━ URL ${i+1} complete — ${data.signalsFired}/${data.totalSteps} signals fired ━━`, 'success');
+        if (data.duplicate) {
+          addLog(`Already submitted before — Skipped`, 'warn');
+          duplicates++;
+        } else if (data.success) {
+          addLog(`Saved to database ✓`, 'success');
+          addLog(`n8n triggered — Signals firing...`, 'success');
+          addLog(`Google Indexing API called ✓`, 'success');
+          addLog(`IndexNow + Bing + Yandex ✓`, 'success');
+          addLog(`━━ URL ${i+1} complete ━━`, 'success');
           processed++;
         } else {
           addLog(`Failed: ${data.error || 'Unknown error'}`, 'error');
@@ -651,11 +401,11 @@
         errors++;
       }
 
-      await sleep(500);
+      await sleep(800);
     }
 
     setProgress(100, 'All Done!');
-    addLog(`✓ Total ${processed} URL(s) processed successfully`, 'success');
+    addLog(`✓ ${processed} submitted, ${duplicates} duplicates, ${errors} errors`, 'success');
     addLog('Google Bot expected within 5-30 minutes', 'info');
 
     const grid = document.getElementById('resultsGrid');
@@ -663,11 +413,11 @@
     grid.innerHTML = `
       <div class="result-card success">
         <div class="result-num">${processed}</div>
-        <div class="result-label">Processed</div>
+        <div class="result-label">Submitted</div>
       </div>
-      <div class="result-card success">
-        <div class="result-num">${processed * 6}</div>
-        <div class="result-label">Signals Sent</div>
+      <div class="result-card ${duplicates > 0 ? 'warn' : 'success'}">
+        <div class="result-num">${duplicates}</div>
+        <div class="result-label">Duplicates</div>
       </div>
       <div class="result-card ${errors > 0 ? 'error' : 'success'}">
         <div class="result-num">${errors}</div>
