@@ -7,6 +7,8 @@
   "routes": [
     { "src": "/api/submit", "dest": "/api/submit.js" },
     { "src": "/api/index", "dest": "/api/index.js" },
+    { "src": "/api/feed", "dest": "/api/feed.js" },
+    { "src": "/feed.xml", "dest": "/api/feed.js" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
