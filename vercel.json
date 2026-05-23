@@ -9,7 +9,9 @@
     { "src": "/api/index", "dest": "/api/index.js" },
     { "src": "/api/feed", "dest": "/api/feed.js" },
     { "src": "/api/links", "dest": "/api/links.js" },
+    { "src": "/api/sitemap", "dest": "/api/sitemap.js" },
     { "src": "/feed.xml", "dest": "/api/feed.js" },
+    { "src": "/sitemap.xml", "dest": "/api/sitemap.js" },
     { "src": "/links", "dest": "/api/links.js" },
     { "src": "/(.*)", "dest": "/index.html" }
   ]
