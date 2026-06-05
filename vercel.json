@@ -13,7 +13,7 @@
     { "src": "/feed.xml", "dest": "/api/feed.js" },
     { "src": "/sitemap.xml", "dest": "/api/sitemap.js" },
     { "src": "/links", "dest": "/api/links.js" },
-    { "src": "/(.*)", "dest": "/index.html" }
+    { "src": "/(.*)", "dest": "/index.html" },
     { "src": "/api/twitter", "dest": "/api/twitter.js" }
   ]
 }
