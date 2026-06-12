@@ -1,3 +1,8 @@
+// api/wordpress.js — Enhanced WordPress.com Multi-Site Auto Post
+// Customer URL এর Real Title/Description Fetch করে
+// ৩টা WordPress.com সাইটে Auto Post করে
+// Google প্রতিটা সাইট থেকে Customer URL দেখে
+
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
