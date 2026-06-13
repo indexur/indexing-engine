@@ -1,5 +1,12 @@
 // api/wordpress.js — WordPress.com OAuth দিয়ে Auto Post
-// Customer URL Submit → Title Fetch → 3 সাইটে Post → PubSubHubbub Ping
+
+export const config = {
+  api: {
+    bodyParser: {
+      sizeLimit: "1mb",
+    },
+  },
+};
 
 const SITES = [
   process.env.WP_SITE_1 || "newslinebd45.wordpress.com",
@@ -7,9 +14,6 @@ const SITES = [
   process.env.WP_SITE_3 || "newslinebd0.wordpress.com",
 ];
 
-// ─────────────────────────────────────────
-// PubSubHubbub Ping
-// ─────────────────────────────────────────
 async function pingFeed(site) {
   try {
     await fetch("https://pubsubhubbub.appspot.com/publish", {
@@ -22,9 +26,6 @@ async function pingFeed(site) {
   }
 }
 
-// ─────────────────────────────────────────
-// Customer URL এর Title ও Description Fetch
-// ─────────────────────────────────────────
 async function fetchMeta(url) {
   const hostname = new URL(url).hostname;
   let title = `Resource: ${hostname}`;
@@ -52,9 +53,6 @@ async function fetchMeta(url) {
   return { title, description };
 }
 
-// ─────────────────────────────────────────
-// WordPress.com এ Post করা (OAuth Token)
-// ─────────────────────────────────────────
 async function postToWordPress(site, title, content, accessToken) {
   const res = await fetch(
     `https://public-api.wordpress.com/rest/v1.1/sites/${site}/posts/new`,
@@ -76,9 +74,6 @@ async function postToWordPress(site, title, content, accessToken) {
   return await res.json();
 }
 
-// ─────────────────────────────────────────
-// MAIN HANDLER
-// ─────────────────────────────────────────
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -88,16 +83,17 @@ export default async function handler(req, res) {
   if (req.method !== "POST")
     return res.status(405).json({ message: "Method Not Allowed" });
 
+  // Body parse
   let body = req.body;
   if (typeof body === "string") {
     try { body = JSON.parse(body); } catch { body = {}; }
   }
+  if (!body || typeof body !== "object") body = {};
 
-  const customerUrl = body?.url;
+  const customerUrl = body.url;
   if (!customerUrl)
     return res.status(400).json({ success: false, error: "url প্রয়োজন" });
 
-  // URL Validate
   try { new URL(customerUrl); } catch {
     return res.status(400).json({ success: false, error: "Invalid URL" });
   }
@@ -106,7 +102,7 @@ export default async function handler(req, res) {
   if (!ACCESS_TOKEN) {
     return res.status(500).json({
       success: false,
-      error: "WP_ACCESS_TOKEN নেই। প্রথমে /api/auth এ গিয়ে token নিন।",
+      error: "WP_ACCESS_TOKEN নেই",
       auth_url: "https://indexing-engine-cyan.vercel.app/api/auth",
     });
   }
@@ -114,56 +110,36 @@ export default async function handler(req, res) {
   const results = [];
   const hostname = new URL(customerUrl).hostname;
 
-  // Step 1: Title & Description Fetch
   const { title, description } = await fetchMeta(customerUrl);
   results.push({ step: "fetch_meta", status: "success", title });
 
-  // Post Content
   const content = `
 <h2>${title}</h2>
 <p>${description}</p>
-
 <h3>Visit Resource</h3>
 <p><a href="${customerUrl}" target="_blank" rel="noopener">${customerUrl}</a></p>
-
 <h3>About This Source</h3>
 <p>Source: <strong>${hostname}</strong></p>
 <p>Published: ${new Date().toUTCString()}</p>
 `.trim();
 
-  // Step 2: তিনটা সাইটে Post
   const postUrls = [];
 
   for (const site of SITES) {
     try {
       const postData = await postToWordPress(site, title, content, ACCESS_TOKEN);
-
       if (postData.URL) {
         postUrls.push(postData.URL);
-        results.push({
-          step: `wordpress_post_${site}`,
-          status: "success",
-          post_url: postData.URL,
-        });
-        // Ping
+        results.push({ step: `wordpress_post_${site}`, status: "success", post_url: postData.URL });
         await pingFeed(site);
       } else {
-        results.push({
-          step: `wordpress_post_${site}`,
-          status: "error",
-          message: JSON.stringify(postData).slice(0, 200),
-        });
+        results.push({ step: `wordpress_post_${site}`, status: "error", message: JSON.stringify(postData).slice(0, 200) });
       }
     } catch (e) {
-      results.push({
-        step: `wordpress_post_${site}`,
-        status: "error",
-        message: e.message,
-      });
+      results.push({ step: `wordpress_post_${site}`, status: "error", message: e.message });
     }
   }
 
-  // Step 3: IndexNow Ping
   if (postUrls.length > 0) {
     try {
       await fetch("https://api.indexnow.org/indexnow", {
@@ -193,9 +169,8 @@ export default async function handler(req, res) {
     total_sites: SITES.length,
     post_urls: postUrls,
     details: results,
-    message:
-      postUrls.length > 0
-        ? `✅ ${successCount}/${SITES.length} সাইটে post হয়েছে! Google Bot ৩০-৬০ মিনিটে আসবে।`
-        : "❌ Post হয়নি। Token check করুন।",
+    message: postUrls.length > 0
+      ? `✅ ${successCount}/${SITES.length} সাইটে post হয়েছে!`
+      : "❌ Post হয়নি। Token check করুন।",
   });
 }
