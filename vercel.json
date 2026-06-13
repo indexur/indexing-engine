@@ -11,6 +11,8 @@
     { "src": "/api/links", "dest": "/api/links.js" },
     { "src": "/api/sitemap", "dest": "/api/sitemap.js" },
     { "src": "/api/wordpress", "dest": "/api/wordpress.js" },
+    { "src": "/api/auth", "dest": "/api/auth.js" },
+    { "src": "/api/callback", "dest": "/api/callback.js" },
     { "src": "/feed.xml", "dest": "/api/feed.js" },
     { "src": "/sitemap.xml", "dest": "/api/sitemap.js" },
     { "src": "/links", "dest": "/api/links.js" },
